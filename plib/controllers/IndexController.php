@@ -44,7 +44,7 @@ class IndexController extends pm_Controller_Action
 		die(); */
 		
 		$newInstallation = new Modules_Wesellin_Install();
-		$newInstallation->setDomainId(5);
+		$newInstallation->setDomainId(6);
 		$newInstallation->setVersion(1);
 		$newInstallation->setType('default');
 		$newInstallation->run();

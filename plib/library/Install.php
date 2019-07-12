@@ -1,4 +1,7 @@
 <?php
+/*
+ * https://docs.plesk.com/en-US/onyx/api-rpc/about-xml-api/reference/managing-databases/creating-database-users/creating-multiple-database-users.34472/#creating-a-database-user
+ */
 
 class Modules_Wesellin_Install
 {
@@ -28,11 +31,20 @@ class Modules_Wesellin_Install
 			throw new \Exception('Domain not found.');
 		}
 		
+		$databaseName = 'wesellin_' . rand(111, 999);
+		$databaseUser = 'wesellin_' . rand(111, 999);
+		$databasePassword = rand(111, 999);
 		
+		$manager = new Modules_Wesellin_DatabaseManager();
+		$manager->setDomainId($domain->getId());
 		
+		$newDatabase = $manager->createDatabase($databaseName);
+		if (isset($newDatabase['database']['add-db']['result']['id'])) {
+			$databaseId = $newDatabase['database']['add-db']['result']['id'];
+		}
 		
-		echo 1;
-		die();
+		$newUser = $manager->createUser($databaseId, $databaseUser, $databasePassword);
+		
 		$domainDocumentRoot = $domain->getDocumentRoot();
 		$domainName = $domain->getName();
 		$domainIsActive = $domain->isActive();
