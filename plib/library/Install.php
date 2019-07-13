@@ -25,11 +25,23 @@ class Modules_Wesellin_Install
 	
 	public function run() {
 		
+		      
+		$this->_checkUserIsRoot();
+		
 		$domain = pm_Domain::getByDomainId($this->_domainId);
 		
 		if (empty($domain->getName())) {
 			throw new \Exception('Domain not found.');
 		}
+		
+		echo shell_exec('ls');
+		echo shell_exec('ln -sf /test /test2');
+		die();
+		$symlink = '/bin/ln -s /usr/share/wesellinsellerapp/config ' . $domain->getDocumentRoot();
+		echo $symlink . '<br />';
+		$output = exec($symlink);
+		var_dump($output); 
+		die();
 		
 		$databaseName = 'wesellin_' . rand(111, 999);
 		$databaseUser = 'wesellin_' . rand(111, 999);
@@ -79,5 +91,15 @@ class Modules_Wesellin_Install
 		// Remove zip file
 		$fileManager->removeFile($domainDocumentRoot . '/wesellin.zip');
 		
+	}
+	
+	protected function _checkUserIsRoot()
+	{
+		$whoami = shell_exec('whoami');
+		$whoami = trim($whoami);
+		
+		if ($whoami != 'root') {
+			throw new \Exception("This can only be installed by 'root' (not: '$whoami').");
+		}
 	}
 }

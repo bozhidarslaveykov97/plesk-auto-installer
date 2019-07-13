@@ -37,12 +37,7 @@ class IndexController extends pm_Controller_Action
 	}
 	
 	public function installAction()
-	{ 
-	
-		/* $output = shell_exec('whoami');
-		echo "<pre>$output</pre>";
-		die(); */
-		
+	{
 		$newInstallation = new Modules_Wesellin_Install();
 		$newInstallation->setDomainId(6);
 		$newInstallation->setVersion(1);
