@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module>
+  <id>wesellin</id>
+  <name>WeSellIn - Automatic script installer</name>
+  <description>Automatic script installer.</description>
+  <version>1.0</version>
+  <release>5</release>
+  <vendor/>
+  <url>http://wesellin.net</url>
+  <plesk_min_version>18.0.16</plesk_min_version>
+</module>

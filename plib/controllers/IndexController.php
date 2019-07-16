@@ -38,13 +38,18 @@ class IndexController extends pm_Controller_Action
 	
 	public function installAction()
 	{
-		$newInstallation = new Modules_Wesellin_Install();
+		/* $newInstallation = new Modules_Wesellin_Install();
 		$newInstallation->setDomainId(6);
 		$newInstallation->setVersion(1);
 		$newInstallation->setType('default');
 		$newInstallation->run();
 		
-		die(); 
+		die();  */   
+		 
+		$result = pm_ApiCli::callSbin('test-script.php', '', pm_ApiCli::RESULT_FULL);
+		
+		var_dump($result);
+		die();
 		
 		
 		$this->view->pageTitle = $this->_moduleName . ' - Install';

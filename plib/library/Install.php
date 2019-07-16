@@ -26,7 +26,9 @@ class Modules_Wesellin_Install
 	public function run() {
 		
 		      
-		$this->_checkUserIsRoot();
+		/* var_dump(run('ls'));
+		die();
+		$this->_checkUserIsRoot(); */
 		
 		$domain = pm_Domain::getByDomainId($this->_domainId);
 		
@@ -34,14 +36,14 @@ class Modules_Wesellin_Install
 			throw new \Exception('Domain not found.');
 		}
 		
-		echo shell_exec('ls');
+		/* echo shell_exec('ls');
 		echo shell_exec('ln -sf /test /test2');
 		die();
 		$symlink = '/bin/ln -s /usr/share/wesellinsellerapp/config ' . $domain->getDocumentRoot();
 		echo $symlink . '<br />';
 		$output = exec($symlink);
 		var_dump($output); 
-		die();
+		die(); */
 		
 		$databaseName = 'wesellin_' . rand(111, 999);
 		$databaseUser = 'wesellin_' . rand(111, 999);
