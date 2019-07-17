@@ -25,25 +25,31 @@ class Modules_Wesellin_Install
 	
 	public function run() {
 		
-		      
-		/* var_dump(run('ls'));
-		die();
-		$this->_checkUserIsRoot(); */
-		
 		$domain = pm_Domain::getByDomainId($this->_domainId);
 		
 		if (empty($domain->getName())) {
 			throw new \Exception('Domain not found.');
 		}
 		
-		/* echo shell_exec('ls');
-		echo shell_exec('ln -sf /test /test2');
+		$symlinkFolders = array();
+		$symlinkFolders[] = 'config';
+		$symlinkFolders[] = 'app';
+		$symlinkFolders[] = 'vendor';
+		$symlinkFolders[] = 'routes';
+		$symlinkFolders[] = 'resources';
+		$symlinkFolders[] = '.htaccess';
+		$symlinkFolders[] = 'Modules';
+		$symlinkFolders[] = 'Themes';
+		
+		foreach($symlinkFolders as $folder) {
+			$folder = '/usr/share/wesellinsellerapp/'.$folder;
+			if (is_dir($folder) || is_file($folder)) {
+				$result = pm_ApiCli::callSbin('create_symlink.sh', [$folder, $domain->getDocumentRoot()], pm_ApiCli::RESULT_FULL);
+			}
+		}
+		
+		var_dump($domain->getDocumentRoot());  
 		die();
-		$symlink = '/bin/ln -s /usr/share/wesellinsellerapp/config ' . $domain->getDocumentRoot();
-		echo $symlink . '<br />';
-		$output = exec($symlink);
-		var_dump($output); 
-		die(); */
 		
 		$databaseName = 'wesellin_' . rand(111, 999);
 		$databaseUser = 'wesellin_' . rand(111, 999);
@@ -93,15 +99,5 @@ class Modules_Wesellin_Install
 		// Remove zip file
 		$fileManager->removeFile($domainDocumentRoot . '/wesellin.zip');
 		
-	}
-	
-	protected function _checkUserIsRoot()
-	{
-		$whoami = shell_exec('whoami');
-		$whoami = trim($whoami);
-		
-		if ($whoami != 'root') {
-			throw new \Exception("This can only be installed by 'root' (not: '$whoami').");
-		}
 	}
 }
