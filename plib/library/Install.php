@@ -5,7 +5,7 @@
 
 class Modules_Wesellin_Install
 {
-	protected $_scriptFolder = '/var/www/vhosts/wesellin.net';
+	protected $_scriptFolder = '/usr/share/wesellinsellerapp';
 	protected $_overwrite = true;
 	protected $_domainId;
 	protected $_version;
@@ -31,39 +31,22 @@ class Modules_Wesellin_Install
 			throw new \Exception('Domain not found.');
 		}
 		
-		$symlinkFolders = array();
-		$symlinkFolders[] = 'config';
-		$symlinkFolders[] = 'app';
-		$symlinkFolders[] = 'vendor';
-		$symlinkFolders[] = 'routes';
-		$symlinkFolders[] = 'resources';
-		$symlinkFolders[] = '.htaccess';
-		$symlinkFolders[] = 'Modules';
-		$symlinkFolders[] = 'Themes';
-		
-		foreach($symlinkFolders as $folder) {
-			$folder = '/usr/share/wesellinsellerapp/'.$folder;
-			if (is_dir($folder) || is_file($folder)) {
-				$result = pm_ApiCli::callSbin('create_symlink.sh', [$folder, $domain->getDocumentRoot()], pm_ApiCli::RESULT_FULL);
-			}
-		}
-		
-		var_dump($domain->getDocumentRoot());  
-		die();
-		
-		$databaseName = 'wesellin_' . rand(111, 999);
-		$databaseUser = 'wesellin_' . rand(111, 999);
-		$databasePassword = rand(111, 999);
+		$databaseName = 'wesellin_' . 'db';
+		$databaseUser = 'wesellin_' . 'user';
+		$databasePassword = rand(1111, 9999);
 		
 		$manager = new Modules_Wesellin_DatabaseManager();
 		$manager->setDomainId($domain->getId());
 		
 		$newDatabase = $manager->createDatabase($databaseName);
+		
 		if (isset($newDatabase['database']['add-db']['result']['id'])) {
 			$databaseId = $newDatabase['database']['add-db']['result']['id'];
 		}
 		
-		$newUser = $manager->createUser($databaseId, $databaseUser, $databasePassword);
+		if ($databaseId) {
+			$newUser = $manager->createUser($databaseId, $databaseUser, $databasePassword);
+		}
 		
 		$domainDocumentRoot = $domain->getDocumentRoot();
 		$domainName = $domain->getName();
@@ -90,6 +73,36 @@ class Modules_Wesellin_Install
 			}
 		}
 		
+		// Build a script
+		$symlinkFolders = array();
+		$symlinkFolders[] = 'config';
+		$symlinkFolders[] = 'app';
+		$symlinkFolders[] = 'vendor';
+		$symlinkFolders[] = 'routes';
+		$symlinkFolders[] = 'resources';
+		$symlinkFolders[] = '.htaccess';
+		$symlinkFolders[] = 'Modules';
+		$symlinkFolders[] = 'Themes';
+		$symlinkFolders[] = 'assets';
+		
+		foreach($symlinkFolders as $folder) {
+			$folder = $this->_scriptFolder . '/' . $folder;
+			if (is_dir($folder) || is_file($folder)) {
+				$result = pm_ApiCli::callSbin('create_symlink.sh', [$folder, $domainDocumentRoot], pm_ApiCli::RESULT_FULL);
+			}
+		}
+		
+		$filesForCopy = array();
+		$filesForCopy[] = 'storage';
+		$filesForCopy[] = 'bootstrap';
+		$filesForCopy[] = 'index.php';
+		$filesForCopy[] = '.env';
+		
+		foreach($filesForCopy as $file) {
+			$fileManager->copyFile($this->_scriptFolder . '/' . $file, $domainDocumentRoot . '/' . $file);
+		}
+		
+		/*
 		// Copy zip file
 		$fileManager->copyFile($this->_scriptFolder . '/wesellin.zip', $domainDocumentRoot);   
 		
@@ -97,7 +110,7 @@ class Modules_Wesellin_Install
 		$fileManager->unzip($domainDocumentRoot . '/wesellin.zip', false,  $this->_overwrite);  
 		
 		// Remove zip file
-		$fileManager->removeFile($domainDocumentRoot . '/wesellin.zip');
+		$fileManager->removeFile(mkdir . '/wesellin.zip'); */
 		
 	}
 }
