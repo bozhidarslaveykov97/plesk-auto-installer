@@ -36,16 +36,19 @@ class IndexController extends pm_Controller_Action
 		$this->view->list = $this->_getDomainsList();
 	}
 	
+	public function testAction()
+	{
+	    
+	    $newInstallation = new Modules_Wesellin_Install();
+	     $newInstallation->setDomainId(2);
+	     $newInstallation->setVersion(1);
+	     $newInstallation->setType('default');
+	     $newInstallation->run();
+	     
+	}
+	
 	public function installAction()
 	{
-/* 		$newInstallation = new Modules_Wesellin_Install();
-		$newInstallation->setDomainId(6);
-		$newInstallation->setVersion(1);
-		$newInstallation->setType('default');
-		$newInstallation->run();
-		
-		die(); */
-		
 		$this->view->pageTitle = $this->_moduleName . ' - Install';
 		
 		$domainsSelect = [];

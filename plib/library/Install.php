@@ -24,28 +24,42 @@ class Modules_Wesellin_Install
 	}
 	
 	public function run() {
-		
+	    
 		$domain = pm_Domain::getByDomainId($this->_domainId);
 		
 		if (empty($domain->getName())) {
 			throw new \Exception('Domain not found.');
 		}
 		
-		$databaseName = 'wesellin_' . 'db';
-		$databaseUser = 'wesellin_' . 'user';
-		$databasePassword = rand(1111, 9999);
+		$time = time();
 		
+		$dbName = 'db_'.$time;
+		$dbUsername = 'user_'.$time;
+		$dbPassword = 'hs45i4m4';
+ 		
 		$manager = new Modules_Wesellin_DatabaseManager();
 		$manager->setDomainId($domain->getId());
 		
-		$newDatabase = $manager->createDatabase($databaseName);
+		$newDb = $manager->createDatabase($dbName);
 		
-		if (isset($newDatabase['database']['add-db']['result']['id'])) {
-			$databaseId = $newDatabase['database']['add-db']['result']['id'];
+		if (isset($newDb['database']['add-db']['result']['errtext'])) {
+		    throw new \Exception($newDb['database']['add-db']['result']['errtext']);
 		}
 		
-		if ($databaseId) {
-			$newUser = $manager->createUser($databaseId, $databaseUser, $databasePassword);
+		if (isset($newDb['database']['add-db']['result']['id'])) {
+		    $dbId = $newDb['database']['add-db']['result']['id'];
+		}
+		
+		if (!$dbId) {
+		    throw new \Exception('Can\'t create database.');
+		}
+		
+		if ($dbId) {
+		    $newUser = $manager->createUser($dbId, $dbUsername, $dbPassword);
+		}
+		
+		if (isset($newUser['database']['add-db-user']['result']['errtext'])) {
+		    throw new \Exception($newUser['database']['add-db-user']['result']['errtext']);
 		}
 		
 		$domainDocumentRoot = $domain->getDocumentRoot();
@@ -75,32 +89,88 @@ class Modules_Wesellin_Install
 		
 		// Build a script
 		$symlinkFolders = array();
-		$symlinkFolders[] = 'config';
+		//$symlinkFolders[] = 'config';
 		$symlinkFolders[] = 'app';
 		$symlinkFolders[] = 'vendor';
 		$symlinkFolders[] = 'routes';
 		$symlinkFolders[] = 'resources';
-		$symlinkFolders[] = '.htaccess';
+		//$symlinkFolders[] = '.htaccess';
 		$symlinkFolders[] = 'Modules';
 		$symlinkFolders[] = 'Themes';
 		$symlinkFolders[] = 'assets';
 		
 		foreach($symlinkFolders as $folder) {
-			$folder = $this->_scriptFolder . '/' . $folder;
+			/* $folder = $this->_scriptFolder . '/' . $folder;
 			if (is_dir($folder) || is_file($folder)) {
 				$result = pm_ApiCli::callSbin('create_symlink.sh', [$folder, $domainDocumentRoot], pm_ApiCli::RESULT_FULL);
-			}
+			} */
 		}
 		
 		$filesForCopy = array();
+		
+		// Copy only for installation
+		$filesForCopy[] = 'app';
+		$filesForCopy[] = 'vendor';
+		$filesForCopy[] = 'routes';
+		$filesForCopy[] = 'resources';
+		$filesForCopy[] = 'Modules';
+		$filesForCopy[] = 'Themes';
+		
 		$filesForCopy[] = 'storage';
 		$filesForCopy[] = 'bootstrap';
 		$filesForCopy[] = 'index.php';
-		$filesForCopy[] = '.env';
+		$filesForCopy[] = '.env.example';
+		$filesForCopy[] = 'config';  
+		$filesForCopy[] = '.htaccess';
+		$filesForCopy[] = 'artisan';
 		
 		foreach($filesForCopy as $file) {
-			$fileManager->copyFile($this->_scriptFolder . '/' . $file, $domainDocumentRoot . '/' . $file);
+		    try {
+		        $fileManager->copyFile($this->_scriptFolder . '/' . $file, $domainDocumentRoot . '/' . $file);
+		    } catch (\PleskUtilException $e) {
+		       echo 'Cant copy file: ' . $file . PHP_EOL;
+		    }
 		}
+		
+		$adminFirstName = '';
+		$adminLastName = '';
+		$adminEmail = '';
+		$adminPassword = '';
+		$storeName = '';
+		$storeEmail = '';
+		
+		$installArguments = array();
+		$installArguments[] = '--db_name=' . $dbName;
+		$installArguments[] = '--db_host=' . $dbHost;
+		$installArguments[] = '--db_port=' . $dbPort;
+		$installArguments[] = '--db_username=' . $dbUsername;
+		$installArguments[] = '--db_password=' . $dbPassword;
+		
+		$installArguments[] = '--admin_first_name=' . $adminFirstName;
+		$installArguments[] = '--admin_last_name=' . $adminLastName;
+		$installArguments[] = '--admin_email=' . $adminEmail;
+		$installArguments[] = '--admin_password=' . $adminPassword;
+		
+		$installArguments[] = '--store_name=' . $storeName;
+		$installArguments[] = '--store_email=' . $storeEmail;
+		
+		$installArguments = implode(' ', $installArguments);
+		
+		$result = pm_ApiCli::callSbin('php -v');
+		
+		var_dump($result); 
+		die();
+		$command = 'php '.$domainDocumentRoot.'/artisan wesellin:install '. $installArguments;
+		
+		$runInstall = shell_exec($command);
+		var_dump($runInstall); 
+		
+		$command = 'php '.$domainDocumentRoot.'/artisan wesellin:install-simple-content';
+		$runInstall = shell_exec($command);
+		var_dump($runInstall); 
+		
+		//var_dump($runInstall);  
+		
 		
 		/*
 		// Copy zip file

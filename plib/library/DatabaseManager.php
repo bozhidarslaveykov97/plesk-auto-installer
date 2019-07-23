@@ -8,7 +8,7 @@ class Modules_Wesellin_DatabaseManager
 		$this->_domainId = $id;
 	}
 	
-	public function createUser($databaseId, $login, $password, $role = 'writeOnly') {
+	public function createUser($databaseId, $login, $password, $role = 'readWrite') {
 		$apiRequest = <<<APICALL
 <packet>
 	<database>
