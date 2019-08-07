@@ -23,6 +23,10 @@ class IndexController extends pm_Controller_Action
 			'title' => 'Install',
 				'action' => 'install'
 			],
+		    [
+		        'title' => 'Update',
+		        'action' => 'update'
+		    ],
 			[
 				'title' => 'Settings',
 				'action' => 'settings',
@@ -36,15 +40,40 @@ class IndexController extends pm_Controller_Action
 		$this->view->list = $this->_getDomainsList();
 	}
 	
+	public function updateAction()
+	{
+	    $this->view->pageTitle = $this->_moduleName . ' - Update';
+	    
+	    $form = new pm_Form_Simple(); 
+	    
+	    $form->addControlButtons([
+	        'cancelLink' => pm_Context::getModulesListUrl(),
+	    ]);
+	    
+	    $this->view->form = $form;
+	}
+	
+	public function downloadAction() {
+	     
+	    $output = pm_ApiCli::callSbin('download_from_git', ['waw','test'], pm_ApiCli::RESULT_FULL);
+	    
+	    var_dump($output);
+	    die();
+	}
+	
+	public function versionAction() {
+	  
+	    echo '1.0';
+	    exit;
+	}
+	
 	public function testAction()
 	{
-	    
-	    $newInstallation = new Modules_Wesellin_Install();
-	     $newInstallation->setDomainId(2);
-	     $newInstallation->setVersion(1);
-	     $newInstallation->setType('default');
-	     $newInstallation->run();
-	     
+        $newInstallation = new Modules_Wesellin_Install();
+        $newInstallation->setDomainId(2);
+        $newInstallation->setVersion(1);
+        $newInstallation->setType('default');
+        $newInstallation->run();
 	}
 	
 	public function installAction()

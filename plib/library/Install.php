@@ -156,10 +156,7 @@ class Modules_Wesellin_Install
 		
 		$installArguments = implode(' ', $installArguments);
 		
-		$result = pm_ApiCli::callSbin('php -v');
 		
-		var_dump($result); 
-		die();
 		$command = 'php '.$domainDocumentRoot.'/artisan wesellin:install '. $installArguments;
 		
 		$runInstall = shell_exec($command);
