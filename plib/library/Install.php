@@ -5,7 +5,7 @@
 
 class Modules_Wesellin_Install
 {
-	protected $_scriptFolder = '/usr/share/wesellinsellerapp';
+	protected $_scriptFolder = '/usr/share/wesellin/latest';
 	protected $_overwrite = true;
 	protected $_domainId;
 	protected $_version;

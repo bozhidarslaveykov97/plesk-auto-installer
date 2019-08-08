@@ -23,10 +23,17 @@ Jsw.onReady(function() {
 
 function downloadNewVersion() { 
 
-	document.getElementById("wesellin-update-log").innerHTML = 'Downloading...';  
+    document.getElementById("wesellin-update-log").innerHTML = 'Downloading...';  
 
-	
-	
+    new Ajax.Request('/modules/wesellin/index.php/index/download', {
+    	method: 'GET',
+    	onSuccess: function (data) {
+            document.getElementById("wesellin-update-log").innerHTML = data.responseText;
+    	},
+    	onFailure: function () {  
+            document.getElementById("wesellin-update-log").innerHTML = 'Failure';         
+        }
+    });
 }
 //]]>
 </script>

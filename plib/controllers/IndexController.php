@@ -10,7 +10,7 @@ class IndexController extends pm_Controller_Action
 	protected $_moduleName = 'We Sell In';
 	
 	public function init()
-	{
+	{ 
 		parent::init();
 		
 		// Init tabs for all actions
@@ -55,9 +55,9 @@ class IndexController extends pm_Controller_Action
 	
 	public function downloadAction() {
 	
-	    var_dump(pm_ApiCli::callSbin('download_from_git.sh'));
-	    
-	    die();
+	   echo pm_ApiCli::callSbin('download_from_git.sh')['stdout'];
+           
+	   exit; 
 	}
 	
 	public function versionAction() {
