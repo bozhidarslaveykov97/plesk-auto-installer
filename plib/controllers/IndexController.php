@@ -44,7 +44,7 @@ class IndexController extends pm_Controller_Action
 	{
 	    $this->view->pageTitle = $this->_moduleName . ' - Update';
 	    
-	    $form = new pm_Form_Simple(); 
+	    $form = new pm_Form_Simple();
 	    
 	    $form->addControlButtons([
 	        'cancelLink' => pm_Context::getModulesListUrl(),
@@ -54,10 +54,9 @@ class IndexController extends pm_Controller_Action
 	}
 	
 	public function downloadAction() {
-	     
-	    $output = pm_ApiCli::callSbin('download_from_git', ['waw','test'], pm_ApiCli::RESULT_FULL);
+	
+	    var_dump(pm_ApiCli::callSbin('download_from_git.sh'));
 	    
-	    var_dump($output);
 	    die();
 	}
 	
