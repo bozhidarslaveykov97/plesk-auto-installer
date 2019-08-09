@@ -6,6 +6,5 @@ if [ "$username" != "root" ]; then
     exit 1
 fi
 
-ln -s $1 $2
+php $1
 
-exit 0

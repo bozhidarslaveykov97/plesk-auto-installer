@@ -1,7 +1,7 @@
 #! /bin/bash
 
 
-rm -rf /usr/share/wesellin/latest
+rm -rf /usr/share/wesellin
 mkdir -p /usr/share/wesellin/latest
 
 #if [ ! -d "/usr/share/wesellin/latest" ]; then
@@ -10,17 +10,19 @@ mkdir -p /usr/share/wesellin/latest
 
 chmod 775 -R "/usr/share/wesellin/latest"
 
-cd "/usr/share/wesellin/latest"
+cd "/usr/share/wesellin"
 
 #readlink -f "./"
 
-# Download latest version
+# Remove old zip
+unlink "latest.zip"
+
+# Download latest version 
 wget "http://download.wesellin.net/latest.zip" >> downloading.log
 
 # Unzip latest version
-unzip -o  "latest.zip" >> unziping.log
+unzip -o "latest.zip" -d latest >> unziping.log
 
-# Remove zip
-unlink "latest.zip"
+chmod 777 -R latest
 
-echo "Done!" 
+echo "Done!"

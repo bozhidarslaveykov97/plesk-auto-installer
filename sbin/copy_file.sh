@@ -6,6 +6,4 @@ if [ "$username" != "root" ]; then
     exit 1
 fi
 
-ln -s $1 $2
-
-exit 0
+cp -r $1 $2
