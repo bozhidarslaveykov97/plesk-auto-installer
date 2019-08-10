@@ -155,6 +155,7 @@ class Modules_Wesellin_Install {
             $result = pm_ApiCli::callSbin('create_symlink.sh', [$scriptDirOrFile, $domainDirOrFile], pm_ApiCli::RESULT_FULL);
             
             var_dump($result);
+            
         }
         
         
