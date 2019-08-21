@@ -2,8 +2,6 @@
 
 downloadUrl=`echo $1 | base64 -d`
 
-echo $downloadUrl
-
 wesellinDownloadCacheFolder='/usr/share/wesellin-download-cache'
 
 if [ ! -d $wesellinDownloadCacheFolder ]; then

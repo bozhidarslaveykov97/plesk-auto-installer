@@ -63,12 +63,13 @@ class IndexController extends pm_Controller_Action {
 
             $downloadVersion = $form->getValue('download_version');
             
+            $downloadLog = 'Failed!';
             foreach ($releases as $release) {
                 if ($release['file'] == $downloadVersion) {
                     $downloadLog = pm_ApiCli::callSbin('download_from_git.sh',[base64_encode($release['download_url']), $release['version']])['stdout'];
                 }
             }
-                
+            
             $this->_status->addMessage('info', $downloadLog);
             $this->_helper->json(['redirect' => pm_Context::getBaseUrl() . 'index.php/index/update']);
         }
