@@ -65,16 +65,11 @@ class IndexController extends pm_Controller_Action {
             
             foreach ($releases as $release) {
                 if ($release['file'] == $downloadVersion) {
-                    
-                    echo $downloadVersion;
-                    die();
-                    $downloadLog = pm_ApiCli::callSbin('download_from_git.sh',[base64_encode($release['download_url']), $downloadVersion])['stdout'];
+                    $downloadLog = pm_ApiCli::callSbin('download_from_git.sh',[base64_encode($release['download_url']), $release['version']])['stdout'];
                 }
             }
-
-            echo $downloadLog;
-            die();
-            $this->_status->addMessage('info', 'Downloading version are started on queue!');
+                
+            $this->_status->addMessage('info', $downloadLog);
             $this->_helper->json(['redirect' => pm_Context::getBaseUrl() . 'index.php/index/update']);
         }
     }
