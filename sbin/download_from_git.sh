@@ -1,28 +1,38 @@
 #! /bin/bash
 
+downloadUrl=`echo $1 | base64 -d`
 
-rm -rf /usr/share/wesellin
-mkdir -p /usr/share/wesellin/latest
+echo $downloadUrl
 
-#if [ ! -d "/usr/share/wesellin/latest" ]; then
-#    mkdir /usr/share/wesellin/latest
-#fi
+wesellinDownloadCacheFolder='/usr/share/wesellin-download-cache'
 
-chmod 775 -R "/usr/share/wesellin/latest"
+if [ ! -d $wesellinDownloadCacheFolder ]; then
+    mkdir $wesellinDownloadCacheFolder
+fi
 
-cd "/usr/share/wesellin"
+cd $wesellinDownloadCacheFolder
 
-#readlink -f "./"
+zipCacheFolder=$2'-cache'
+zipDownloadedFile=$2'-cache.zip';
 
-# Remove old zip
-unlink "latest.zip"
+// Remove old zip
+echo 'Remove old zip cache folder...'
+unlink $zipCacheFile
 
-# Download latest version 
-wget "http://download.wesellin.net/latest.zip" >> downloading.log
+mkdir $zipCacheFolder
+cd $zipCacheFolder
 
-# Unzip latest version
-unzip -o "latest.zip" -d latest >> unziping.log
+echo 'Download from url...'
+wget $downloadUrl -O $zipDownloadedFile
 
-chmod 777 -R latest
+# Unzip selected version
+unzip $zipDownloadedFile > unziping.log
+
+if [ ! -d '/usr/share/wesellin' ]; then
+    mkdir '/usr/share/wesellin'
+fi
+
+mv $2 /usr/share/wesellin
 
 echo "Done!"
+
