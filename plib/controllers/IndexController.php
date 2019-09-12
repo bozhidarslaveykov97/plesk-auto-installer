@@ -84,9 +84,8 @@ class IndexController extends pm_Controller_Action {
     }
 
     public function testAction() {
-        $newInstallation = new Modules_Wesellin_Install();
+        $newInstallation = new Modules_CredoCart_Install();
         $newInstallation->setDomainId(2);
-        $newInstallation->setVersion(1);
         $newInstallation->setType('default');
         $newInstallation->run();
     }
@@ -105,16 +104,13 @@ class IndexController extends pm_Controller_Action {
         }
 
         $form = new pm_Form_Simple();
+        
         $form->addElement('select', 'installation_domain', [
             'label' => 'Domain',
             'multiOptions' => $domainsSelect,
             'required' => true,
         ]);
-        $form->addElement('select', 'installation_version', [
-            'label' => 'Version',
-            'multiOptions' => ['' => 'First setup your download versions link.'],
-            'required' => true,
-        ]);
+        
         $form->addElement('radio', 'installation_type', [
             'label' => 'Installation Type',
             'multiOptions' =>
@@ -133,10 +129,9 @@ class IndexController extends pm_Controller_Action {
         if ($this->getRequest()->isPost() && $form->isValid($this->getRequest()->getPost())) {
 
             $post = $this->getRequest()->getPost();
-
-            $newInstallation = new Modules_Wesellin_Install();
+			
+            $newInstallation = new Modules_CredoCart_Install();
             $newInstallation->setDomainId($post['installation_domain']);
-            $newInstallation->setVersion(1);
             $newInstallation->setType($post['installation_type']);
             $newInstallation->run();
         }
