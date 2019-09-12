@@ -2,7 +2,7 @@
 
 downloadUrl=`echo $1 | base64 -d`
 
-downloadCacheFolder='/usr/share/wesellin-download-cache'
+downloadCacheFolder='/usr/share/app-download-cache'
 
 if [ ! -d $downloadCacheFolder ]; then
     mkdir $downloadCacheFolder
@@ -10,29 +10,24 @@ fi
 
 cd $downloadCacheFolder
 
-zipCacheFolder=$2'-cache'
 zipDownloadedFile=$2'-cache.zip';
 
-// Remove old zip
-echo 'Remove old zip cache folder...'
-unlink $zipCacheFile
-
-mkdir $zipCacheFolder
-cd $zipCacheFolder
 
 echo 'Download from url...'
 wget $downloadUrl -O $zipDownloadedFile
 
 # Unzip selected version
-
 echo 'Unzip file...'
-unzip $zipDownloadedFile > unziping.log
+unzip $zipDownloadedFile -d latest > unziping.log
 
-if [ ! -d '/usr/share/wesellin' ]; then
-    mkdir '/usr/share/wesellin'
+if [ ! -d '/usr/share/$3' ]; then
+    mkdir '/usr/share/$3'
 fi
 
-echo 'Move file to /usr/share/wesellin'
-mv $2 /usr/share/wesellin
+echo 'Delete files from /usr/share/'$3'/latest'
+rm -rf '/usr/share/'$3'/latest'
+
+echo 'Move file to /usr/share/'$3
+mv latest /usr/share/$3
 
 echo "Done!"
