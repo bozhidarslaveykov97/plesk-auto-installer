@@ -1,6 +1,6 @@
 <?php
 
-class Modules_Wesellin_DatabaseManager
+class Modules_Credocart_DatabaseManager
 {
 	protected $_domainId;
 	
