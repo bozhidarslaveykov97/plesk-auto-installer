@@ -1,7 +1,11 @@
 <?php
-// Copyright 1999-2017. Plesk International GmbH.
+/**
+* Author: Bozhidar Slaveykov
+* @email: info@credocart.com
+* Plesk auto app installer
+*/
 
-class Modules_Wesellin_EventListener implements EventListener
+class Modules_Credocart_EventListener implements EventListener
 {
     public function handleEvent($objectType, $objectId, $action, $oldValue, $newValue)
     {
@@ -9,9 +13,8 @@ class Modules_Wesellin_EventListener implements EventListener
     	
     	if ($action == 'phys_hosting_create') {
     		
-    		$newInstallation = new Modules_Wesellin_Install();
+    		$newInstallation = new Modules_Credocart_Install();
     		$newInstallation->setDomainId($objectId);
-    		$newInstallation->setVersion(1);
     		$newInstallation->setType('default');
     		$newInstallation->run();
     		
@@ -19,4 +22,4 @@ class Modules_Wesellin_EventListener implements EventListener
     }
 }
 
-return new Modules_Wesellin_EventListener();
+return new Modules_Credocart_EventListener();
