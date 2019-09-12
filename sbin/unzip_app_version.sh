@@ -2,13 +2,13 @@
 
 downloadUrl=`echo $1 | base64 -d`
 
-wesellinDownloadCacheFolder='/usr/share/wesellin-download-cache'
+downloadCacheFolder='/usr/share/wesellin-download-cache'
 
-if [ ! -d $wesellinDownloadCacheFolder ]; then
-    mkdir $wesellinDownloadCacheFolder
+if [ ! -d $downloadCacheFolder ]; then
+    mkdir $downloadCacheFolder
 fi
 
-cd $wesellinDownloadCacheFolder
+cd $downloadCacheFolder
 
 zipCacheFolder=$2'-cache'
 zipDownloadedFile=$2'-cache.zip';
