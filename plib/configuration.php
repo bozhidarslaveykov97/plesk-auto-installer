@@ -1,7 +1,7 @@
 <?php 
 
 $config = array();
-$config['name'] = 'Microweber';
+$config['name'] = 'CredoCart';
 $config['description'] = '';
 
 
