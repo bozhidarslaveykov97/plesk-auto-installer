@@ -5,11 +5,25 @@ class IndexController extends pm_Controller_Action {
     protected $_accessLevel = [
         'admin'
     ];
-    protected $_moduleName = 'We Sell In';
-
+    protected $_moduleName = '';
+	protected $_modulePath = false;
+	
     public function init() {
+    	
         parent::init();
-
+        
+        // Find module path
+        $this->_modulePath = substr(realpath(dirname(__FILE__)), 0, - strlen('controllers'));
+       	
+        // Get configuration file
+        $configuration = include($this->_modulePath . 'configuration.php');
+        
+        // Set module name
+        $this->_moduleName = $configuration['name'];
+        
+        // Set module name to views
+        $this->view->moduleName = $this->_moduleName;
+        
         // Init tabs for all actions
         $this->view->tabs = [
             [
@@ -21,8 +35,8 @@ class IndexController extends pm_Controller_Action {
                 'action' => 'install'
             ],
             [
-                'title' => 'Update',
-                'action' => 'update'
+                'title' => 'Versions',
+                'action' => 'versions'
             ],
             [
                 'title' => 'Settings',
@@ -35,50 +49,38 @@ class IndexController extends pm_Controller_Action {
         $this->view->pageTitle = $this->_moduleName . ' - Domains';
         $this->view->list = $this->_getDomainsList();
     }
+    
+    public function versionsAction() {
 
-    public function updateAction() {
-
-        $versionOptions = array();
-        $releases = $this->_getReleases();
-        foreach ($releases as $release) {
-            $versionOptions[$release['file']] = $release['file'];
+        $release = $this->_getRelease();
+        
+        $this->view->pageTitle = $this->_moduleName . ' - Versions';
+		
+        $this->view->latestVersion = 'unknown';
+        $this->view->currentVersion = $this->_getCurrentVersion();
+        $this->view->latestDownloadDate = $this->_getCurrentVersionLastDownloadDateTime();
+        
+        if (!empty($release)) {
+        	$this->view->latestVersion = $release['version']; 
         }
         
-        $this->view->pageTitle = $this->_moduleName . ' - Update';
+        $this->view->updateLink = pm_Context::getBaseUrl() . 'index.php/index/update';
 
-        $form = new pm_Form_Simple();
-        $form->addElement('select', 'download_version', [
-            'label' => 'Version',
-            'multiOptions' => $versionOptions,
-            'required' => true,
-        ]);
-
-        $form->addControlButtons([
-            'cancelLink' => pm_Context::getModulesListUrl(),
-        ]);
-
-        $this->view->form = $form;
-
-        if ($this->getRequest()->isPost() && $form->isValid($this->getRequest()->getPost())) {
-
-            $downloadVersion = $form->getValue('download_version');
-            
-            $downloadLog = 'Failed!';
-            foreach ($releases as $release) {
-                if ($release['file'] == $downloadVersion) {
-                    $downloadLog = pm_ApiCli::callSbin('download_from_git.sh',[base64_encode($release['download_url']), $release['version']])['stdout'];
-                }
-            }
-            
-            $this->_status->addMessage('info', $downloadLog);
-            $this->_helper->json(['redirect' => pm_Context::getBaseUrl() . 'index.php/index/update']);
-        }
     }
 
-    public function versionAction() {
-
-        echo '1.0';
-        exit;
+    public function updateAction() {
+    	
+    	$release = $this->_getRelease();
+    	if (empty($release)) {
+    		return;
+    	}
+    	
+    	$downloadLog = pm_ApiCli::callSbin('unzip_app_version.sh',[base64_encode($release['url']), $this->_getSharedFolderAppName()])['stdout'];
+    	
+    	$this->_status->addMessage('info', $downloadLog);
+    	
+    	header("Location: " . pm_Context::getBaseUrl() . 'index.php/index/versions');
+    	exit;
     }
 
     public function testAction() {
@@ -110,7 +112,7 @@ class IndexController extends pm_Controller_Action {
         ]);
         $form->addElement('select', 'installation_version', [
             'label' => 'Version',
-            'multiOptions' => ['1.0' => '1.0'],
+            'multiOptions' => ['' => 'First setup your download versions link.'],
             'required' => true,
         ]);
         $form->addElement('radio', 'installation_type', [
@@ -151,8 +153,8 @@ class IndexController extends pm_Controller_Action {
             'label' => 'Installation Settings',
             'multiOptions' =>
             [
-                'auto' => 'Automaticlly install WeSellIn on new domains creation.',
-                'manual' => 'Allow users to Manualy install WeSellIn from Plesk.',
+                'auto' => 'Automaticlly install '.$this->_moduleName.' on new domains creation.',
+            	// 'manual' => 'Allow users to Manualy install '.$this->_moduleName.' from Plesk.',
                 'disabled' => 'Disabled for all users'
             ],
             'value' => pm_Settings::get('installation_settings'),
@@ -177,25 +179,89 @@ class IndexController extends pm_Controller_Action {
             'value' => pm_Settings::get('installation_database_driver'),
             'required' => true,
         ]);
+        
+        
+        $form->addElement('text', 'download_latest_version_app_url', [
+        	'label' => 'Download latest version app url',
+        	'value' => pm_Settings::get('download_latest_version_app_url'),
+        	'required' => true,
+        ]);
+        
+        $form->addElement('text', 'shared_folder_app_name', [
+        	'label' => 'Shared folder app name (Folder name for symlinks)',
+        	'value' => $this->_getSharedFolderAppName(),
+        	'required' => true,
+        ]);
 
         $form->addControlButtons([
             'cancelLink' => pm_Context::getModulesListUrl(),
         ]);
 
         if ($this->getRequest()->isPost() && $form->isValid($this->getRequest()->getPost())) {
-
+			
+        	$success = true;
+        	
             // Form proccessing
             pm_Settings::set('installation_settings', $form->getValue('installation_settings'));
             pm_Settings::set('installation_type', $form->getValue('installation_type'));
             pm_Settings::set('installation_database_driver', $form->getValue('installation_database_driver'));
+            
+            pm_Settings::set('download_latest_version_app_url', $form->getValue('download_latest_version_app_url'));
+            pm_Settings::set('shared_folder_app_name', $form->getValue('shared_folder_app_name'));
 
-            $this->_status->addMessage('info', 'Settings was successfully saved.');
+            $release = $this->_getRelease();
+            if (empty($release)) {
+            	$this->_status->addMessage('error', 'Can\'t get latest version from selected download url.');
+            	$success = false;
+            }
+            
+            if ($success) {
+            	$this->_status->addMessage('info', 'Settings was successfully saved.');
+            }
+           
             $this->_helper->json(['redirect' => pm_Context::getBaseUrl() . 'index.php/index/settings']);
         }
 
         $this->view->form = $form;
     }
-
+    
+    private function _getCurrentVersionLastDownloadDateTime()
+    {
+    	$version_file = file_exists($this->_getSharedFolderPath() . 'version.txt');
+    	if ($version_file) {
+    		$version = filectime($this->_getSharedFolderPath() . 'version.txt');
+    		if ($version) {
+    			return date('Y-m-d H:i:s', $version);
+    		}
+    	}
+    }
+    private function _getCurrentVersion()
+    {
+    	$versionFile = file_exists($this->_getSharedFolderPath() . 'version.txt');
+    	
+    	$version = 'unknown';
+    	if ($versionFile) {
+    		$version = file_get_contents($this->_getSharedFolderPath() . 'version.txt');
+    		$version = strip_tags($version);
+    	}
+    	return $version;
+    }
+	
+    private function _getSharedFolderPath() {
+    	return '/usr/share/'.strtolower($this->_moduleName).'/latest/';
+    }
+    
+    private function _getSharedFolderAppName() {
+    	
+    	$sharedFolderAppName = pm_Settings::get('shared_folder_app_name');
+    	
+    	if (empty($sharedFolderAppName)) {
+    		$sharedFolderAppName = strtolower($this->_moduleName);
+    	}
+    	
+    	return $sharedFolderAppName;
+    }
+    
     private function _getDomainsList() {
 
         $data = [];
@@ -259,10 +325,10 @@ class IndexController extends pm_Controller_Action {
         return $list;
     }
 
-    private function _getReleases() {
+    private function _getRelease() {
 
         $tuCurl = curl_init();
-        curl_setopt($tuCurl, CURLOPT_URL, 'download.wesellin.net/getVersions.php?secret=9704256060');
+        curl_setopt($tuCurl, CURLOPT_URL, pm_Settings::get('download_latest_version_app_url'));
         curl_setopt($tuCurl, CURLOPT_VERBOSE, 0);
         curl_setopt($tuCurl, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($tuCurl, CURLOPT_SSL_VERIFYPEER, false);
@@ -278,7 +344,7 @@ class IndexController extends pm_Controller_Action {
         curl_close($tuCurl);
 
         $json = json_decode($tuData, TRUE);
-
+		
         return $json;
     }
 
