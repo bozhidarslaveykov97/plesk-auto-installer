@@ -4,9 +4,9 @@
  * https://docs.plesk.com/en-US/onyx/api-rpc/about-xml-api/reference/managing-databases/creating-database-users/creating-multiple-database-users.34472/#creating-a-database-user
  */
 
-class Modules_Wesellin_Install {
+class Modules_Credocart_Install {
 
-    protected $_scriptFolder = '/usr/share/wesellin/latest/wesellinsellerapp-master';
+    protected $_scriptFolder = '/usr/share/credocart/latest/';
     protected $_overwrite = true;
     protected $_domainId;
     protected $_version;
@@ -38,7 +38,7 @@ class Modules_Wesellin_Install {
         $dbUsername = 'user_x' . $time;
         $dbPassword = 'hs45i4m4';
 
-        $manager = new Modules_Wesellin_DatabaseManager();
+        $manager = new Modules_Credocart_DatabaseManager();
         $manager->setDomainId($domain->getId());
 
         $newDb = $manager->createDatabase($dbName);
@@ -117,14 +117,9 @@ class Modules_Wesellin_Install {
         $installArguments = implode(' ', $installArguments);
 
 
-        $command = $domainDocumentRoot . '/artisan wesellin:install ' . $installArguments;
-        
+        $command = $domainDocumentRoot . '/artisan credocart:install ' . $installArguments;
         var_dump(pm_ApiCli::callSbin('run_php.sh', [$command]));  
 
-        $command = $domainDocumentRoot . '/artisan wesellin:install-simple-content';
-        
-        var_dump(pm_ApiCli::callSbin('run_php.sh', [$command]));  
-        
         var_dump(pm_ApiCli::callSbin('repar_domain_permissions.sh', [$domainName], pm_ApiCli::RESULT_FULL));
         
         // Create symlinks
