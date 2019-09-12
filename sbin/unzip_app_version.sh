@@ -2,7 +2,7 @@
 
 downloadUrl=`echo $1 | base64 -d`
 
-downloadCacheFolder='/usr/share/app-download-cache'
+downloadCacheFolder='/usr/share/'$2'-download-cache'
 
 if [ ! -d $downloadCacheFolder ]; then
     mkdir $downloadCacheFolder
@@ -10,8 +10,7 @@ fi
 
 cd $downloadCacheFolder
 
-zipDownloadedFile=$2'-cache.zip';
-
+zipDownloadedFile=$2'-app-cache.zip';
 
 echo 'Download from url...'
 wget $downloadUrl -O $zipDownloadedFile
@@ -20,14 +19,16 @@ wget $downloadUrl -O $zipDownloadedFile
 echo 'Unzip file...'
 unzip $zipDownloadedFile -d latest > unziping.log
 
-if [ ! -d '/usr/share/$3' ]; then
-    mkdir '/usr/share/$3'
+if [ ! -d '/usr/share/$2' ]; then
+    mkdir '/usr/share/$2'
 fi
 
-echo 'Delete files from /usr/share/'$3'/latest'
-rm -rf '/usr/share/'$3'/latest'
+echo 'Delete files from /usr/share/'$2'/latest'
+rm -rf '/usr/share/'$2'/latest'
 
-echo 'Move file to /usr/share/'$3
-mv latest /usr/share/$3
+echo 'Move file to /usr/share/'$2
+mv latest /usr/share/$2
+
+cd /usr/share/$2/latest
 
 echo "Done!"
