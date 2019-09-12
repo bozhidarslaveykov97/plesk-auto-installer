@@ -1,11 +1,11 @@
-#! /bin/bash
+#!/bin/bash
 
 downloadUrl=$(echo "$1" | base64 -d)
 
 downloadCacheFolder='/usr/share/'$2'-download-cache'
 
 if [ ! -d "$downloadCacheFolder" ]; then
-    mkdir "$downloadCacheFolder"
+	mkdir "$downloadCacheFolder"
 fi
 
 cd "$downloadCacheFolder" || exit
@@ -21,7 +21,7 @@ unzip "$zipDownloadedFile" -d latest > unziping.log
 
 if [ ! -d '/usr/share/'"$2" ]; then
 	echo 'Make dir /usr/share/'"$2"
-    mkdir '/usr/share/'"$2"
+	mkdir '/usr/share/'"$2"
 fi
 
 echo 'Delete files from /usr/share/'"$2"'/latest'
