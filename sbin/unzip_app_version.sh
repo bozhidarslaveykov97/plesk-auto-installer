@@ -19,8 +19,9 @@ wget $downloadUrl -O $zipDownloadedFile
 echo 'Unzip file...'
 unzip $zipDownloadedFile -d latest > unziping.log
 
-if [ ! -d '/usr/share/$2' ]; then
-    mkdir '/usr/share/$2'
+if [ ! -d '/usr/share/'$2 ]; then
+	echo 'Make dir /usr/share/'$2
+    mkdir '/usr/share/'$2
 fi
 
 echo 'Delete files from /usr/share/'$2'/latest'
