@@ -4,20 +4,15 @@
  * https://docs.plesk.com/en-US/onyx/api-rpc/about-xml-api/reference/managing-databases/creating-database-users/creating-multiple-database-users.34472/#creating-a-database-user
  */
 
-class Modules_Credocart_Install {
+class Modules_Microweber_Install {
 
-    protected $_scriptFolder = '/usr/share/credocart/latest/';
+    protected $_appLatestVersionFolder = '/usr/share/microweber/latest/';
     protected $_overwrite = true;
     protected $_domainId;
-    protected $_version;
     protected $_type = 'default';
 
     public function setDomainId($id) {
         $this->_domainId = $id;
-    }
-
-    public function setVersion($version) {
-        $this->_version = $version;
     }
 
     public function setType($type) {
@@ -31,14 +26,15 @@ class Modules_Credocart_Install {
         if (empty($domain->getName())) {
             throw new \Exception('Domain not found.');
         } 
+        
+        $dbPrefix = rand(11,99);
+        $dbNameLength = 15;
+        $dbName = $dbPrefix . str_replace('.', '', $domain->getName());
+        $dbName = substr($dbName, 0, $dbNameLength);
+        $dbUsername = $dbName;
+        $dbPassword = $this->_getRandomPassword(12);
 
-        $time = rand(111,999);
-
-        $dbName = 'db_x' . $time;
-        $dbUsername = 'user_x' . $time;
-        $dbPassword = 'hs45i4m4';
-
-        $manager = new Modules_Credocart_DatabaseManager();
+        $manager = new Modules_Microweber_DatabaseManager();
         $manager->setDomainId($domain->getId());
 
         $newDb = $manager->createDatabase($dbName);
@@ -71,26 +67,21 @@ class Modules_Credocart_Install {
         // Clear domain files if exists
         pm_ApiCli::callSbin('clear_domain_folder.sh', [$domainDocumentRoot]);
        
-        // Copy only for installation
-        $filesForCopy = array();
-        $filesForCopy[] = 'assets';
-        $filesForCopy[] = 'app';
-        $filesForCopy[] = 'vendor';
-        $filesForCopy[] = 'routes';
-        $filesForCopy[] = 'resources';
-        $filesForCopy[] = 'Modules';
-        $filesForCopy[] = 'Themes';
-        $filesForCopy[] = 'storage';
-        $filesForCopy[] = 'bootstrap';
-        $filesForCopy[] = 'index.php';
-        $filesForCopy[] = '.env.example';
-        $filesForCopy[] = 'config';
-        $filesForCopy[] = '.htaccess';
-        $filesForCopy[] = 'artisan';
-
-        foreach ($filesForCopy as $file) {
-            pm_ApiCli::callSbin('copy_file.sh', [$this->_scriptFolder . '/' . $file, $domainDocumentRoot . '/' . $file]);
+        // First we will make a directories
+        // And then we will copy files
+        foreach ($this->_getDirsToMake() as $dir) {
+        	pm_ApiCli::callSbin('create_dir.sh', [$this->_appLatestVersionFolder . '/' . $dir, $domainDocumentRoot . '/' . $dir]);
         }
+        
+        die();
+        // And then we will copy files
+        foreach ($this->_getFilesForCopy() as $file) {
+        	pm_ApiCli::callSbin('copy_file.sh', [$this->_appLatestVersionFolder . '/' . $file, $domainDocumentRoot . '/' . $file]);
+        }
+        
+        
+        echo 1;
+        die();
         
         $adminFirstName = '';
         $adminLastName = '';
@@ -138,7 +129,7 @@ class Modules_Credocart_Install {
 
         foreach ($symlinkFolders as $folder) {
             
-            $scriptDirOrFile = $this->_scriptFolder . '/' . $folder;
+        	$scriptDirOrFile = $this->_appLatestVersionFolder . '/' . $folder;
             $domainDirOrFile = $domainDocumentRoot .'/'. $folder;
 			
             if ($fileManager->isDir($domainDirOrFile)) {
@@ -155,5 +146,76 @@ class Modules_Credocart_Install {
         
         
     }
-
+    
+    private function _getDirsToMake() {
+    	
+    	$dirs = array();
+    	
+    	// Storage dirs
+    	$dirs[] = 'storage';
+    	$dirs[] = 'storage/framework';
+    	$dirs[] = 'storage/framework/sessions';
+    	$dirs[] = 'storage/framework/views';
+    	$dirs[] = 'storage/cache';
+    	$dirs[] = 'storage/logs';
+    	$dirs[] = 'storage/app';
+    	
+    	// Bootstrap dirs
+    	$dirs[] = 'bootstrap';
+    	$dirs[] = 'bootstrap/cache';
+    	
+    	// User files dirs
+    	$dirs[] = 'userfiles';
+    	$dirs[] = 'userfiles/media';
+    	$dirs[] = 'userfiles/modules';
+    	$dirs[] = 'userfiles/templates';
+    	
+    	return $dirs;
+    }
+    
+    private function _getFilesForCopy() {
+    	
+    	$files = array();
+    	
+    	// Index
+    	$files[] = 'index.php';
+    	$files[] = '.htaccess';
+    	$files[] = 'favicon.ico';
+    	$files[] = 'composer.json';
+    	$files[] = 'artisan';
+    	
+    	// Config folder
+    	$files[] = 'config/.htaccess';
+    	$files[] = 'config/database.php';
+    	$files[] = 'config/app.php';
+    	$files[] = 'config/auth.php';
+    	$files[] = 'config/cache.php';
+    	$files[] = 'config/compile.php';
+    	$files[] = 'config/filesystems.php';
+    	$files[] = 'config/queue.php';
+    	$files[] = 'config/services.php';
+    	$files[] = 'config/view.php';
+    	$files[] = 'config/workbench.php';
+    	$files[] = 'config/hashing.php';
+    	$files[] = 'config/mail.php';
+    	
+    	// Bootstrap folder
+    	$files[] = 'bootstrap/.htaccess';
+    	$files[] = 'bootstrap/app.php';
+    	$files[] = 'bootstrap/autoload.php';
+    	
+    	return $files;
+    }
+    
+    private function _getRandomPassword($length = 16)
+    {
+    	$alphabet = '!@#abcdef^@%^&*[]-ghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+    	$pass = array();
+    	$alphaLength = strlen($alphabet) - 1;
+    	for ($i = 0; $i < $length; $i++) {
+    		$n = rand(0, $alphaLength);
+    		$pass[] = $alphabet[$n];
+    	}
+    	return implode($pass);
+    }
 }

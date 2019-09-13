@@ -1,6 +1,6 @@
 # plesk-auto-installer
 
-/opt/psa/admin/sbin/modules/wesellin
+/opt/psa/admin/sbin/modules/microweber
 
 # Panel.ini
 [ext-catalog]

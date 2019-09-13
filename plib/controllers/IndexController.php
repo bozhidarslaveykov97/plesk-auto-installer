@@ -46,11 +46,16 @@ class IndexController extends pm_Controller_Action {
     }
 
     public function indexAction() {
+    	
+    	$this->_checkIsCorrect();
+    	
         $this->view->pageTitle = $this->_moduleName . ' - Domains';
         $this->view->list = $this->_getDomainsList();
     }
     
     public function versionsAction() {
+    	
+    	$this->_checkIsCorrect();
 
         $release = $this->_getRelease();
         
@@ -84,14 +89,18 @@ class IndexController extends pm_Controller_Action {
     }
 
     public function testAction() {
-        $newInstallation = new Modules_CredoCart_Install();
-        $newInstallation->setDomainId(2);
+    	
+        $newInstallation = new Modules_Microweber_Install();
+        $newInstallation->setDomainId(5);
         $newInstallation->setType('default');
         $newInstallation->run();
+        
     }
 
     public function installAction() {
 
+    	$this->_checkIsCorrect();
+    	
         $this->view->pageTitle = $this->_moduleName . ' - Install';
 
         $domainsSelect = [];
@@ -218,6 +227,15 @@ class IndexController extends pm_Controller_Action {
         }
 
         $this->view->form = $form;
+    }
+    
+    private function _checkIsCorrect() 
+    {
+    	if (empty(pm_Settings::get('download_latest_version_app_url'))) {
+    		$this->_status->addMessage('warning', 'First you must to fill your app settings.');
+    		header("Location: " . pm_Context::getBaseUrl() . 'index.php/index/settings');
+    		exit;
+    	}
     }
     
     private function _getCurrentVersionLastDownloadDateTime()

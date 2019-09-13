@@ -33,4 +33,3 @@ mv latest /usr/share/"$2"
 cd /usr/share/"$2"/latest || exit
 
 echo "Done!"
-

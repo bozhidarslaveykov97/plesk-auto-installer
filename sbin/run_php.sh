@@ -7,4 +7,3 @@ if [ "$username" != "root" ]; then
 fi
 
 php $1
-

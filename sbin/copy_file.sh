@@ -6,4 +6,6 @@ if [ "$username" != "root" ]; then
     exit 1
 fi
 
-cp -r $1 $2
+if [ -f $1 ]; then
+	cp -r $1 $2
+fi
