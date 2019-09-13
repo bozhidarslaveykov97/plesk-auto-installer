@@ -139,13 +139,18 @@ class IndexController extends pm_Controller_Action {
 
             $post = $this->getRequest()->getPost();
 			
-            $newInstallation = new Modules_Microweber_Install();
-            $newInstallation->setDomainId($post['installation_domain']);
-            $newInstallation->setType($post['installation_type']);
-            $newInstallation->run();
+            try {
+            	$newInstallation = new Modules_Microweber_Install();
+            	$newInstallation->setDomainId($post['installation_domain']);
+            	$newInstallation->setType($post['installation_type']);
+            	$newInstallation->run();
+            	
+            	$this->_status->addMessage('info', 'App is installed successfuly on selected domain.');
+            } catch (Exception $e) {
+            	$this->_status->addMessage('error', $e->getMessage());
+            }
             
-            $this->_status->addMessage('info', 'App is installed successfuly.');
-            $this->_helper->json(['redirect' => pm_Context::getBaseUrl()]);
+            $this->_helper->json(['redirect' => pm_Context::getBaseUrl(). 'index.php/index/index']);
         }
 
         $this->view->form = $form;
@@ -285,15 +290,34 @@ class IndexController extends pm_Controller_Action {
 
         $i = 0;
         foreach ($domains as $domain) {
+        	
             $domainDocumentRoot = $domain->getDocumentRoot();
             $domainName = $domain->getName();
             $domainIsActive = $domain->isActive();
             $domainCreation = $domain->getProperty('cr_date');
-
+			
+            $appVersion = 'unknown';
+            $installationType = 'unknown';
+            
+            $fileManager = new pm_FileManager($domain->getId());
+            
+            if ($fileManager->fileExists($domain->getDocumentRoot() . '/version.txt')) {
+            	$appVersion = $fileManager->fileGetContents($domain->getDocumentRoot() . '/version.txt');
+            }
+            
+            /*
+            if ($fileManager->fileExists($domain->getDocumentRoot() . '/symlinked.txt')) {
+            	$installationType = 'Symlinked';
+            } else  if ($fileManager->fileExists($domain->getDocumentRoot() . '/standalone.txt')) {
+            	$installationType = 'Standalone';
+            }
+           	*/
+            
             $data[$i] = [
                 'domain' => '<a href="#">' . $domainName . '</a>',
                 'created_date' => $domainCreation,
-                'type' => 'Symlink',
+                'type' => $installationType,
+            	'app_version' => $appVersion,
                 'document_root' => $domainDocumentRoot,
                 'active' => ($domainIsActive ? 'Yes' : 'No')
             ];
@@ -323,6 +347,11 @@ class IndexController extends pm_Controller_Action {
                 'noEscape' => true,
                 'sortable' => false,
             ],
+        	'app_version' => [
+        		'title' => 'App Version',
+        		'noEscape' => true,
+        		'sortable' => false,
+        	],
             'active' => [
                 'title' => 'Active',
                 'noEscape' => true,

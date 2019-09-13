@@ -21,10 +21,11 @@ class Modules_Microweber_Install {
 
     public function run() {
         
-    	$this->_domainId = 6;
+    	// $this->_domainId = 6;
     	
         $domain = pm_Domain::getByDomainId($this->_domainId);
-
+        $domainFileManager = new pm_FileManager($domain->getId());
+        
         if (empty($domain->getName())) {
             throw new \Exception('Domain not found.');
         } 
@@ -34,7 +35,7 @@ class Modules_Microweber_Install {
         $dbName = $dbPrefix . str_replace('.', '', $domain->getName());
         $dbName = substr($dbName, 0, $dbNameLength);
         $dbUsername = $dbName;
-        $dbPassword = 'hs45i4m4';//$this->_getRandomPassword(12);
+        $dbPassword = $this->_getRandomPassword(12);
 
         $manager = new Modules_Microweber_DatabaseManager();
         $manager->setDomainId($domain->getId());
@@ -76,7 +77,7 @@ class Modules_Microweber_Install {
         
         // And then we will copy files
         foreach ($this->_getFilesForCopy() as $file) {
-        	var_dump(pm_ApiCli::callSbin('copy_file.sh', [$this->_appLatestVersionFolder . '/' . $file, $domainDocumentRoot . '/' . $file]));
+        	pm_ApiCli::callSbin('copy_file.sh', [$this->_appLatestVersionFolder . '/' . $file, $domainDocumentRoot . '/' . $file]);
         }
         
 
@@ -108,7 +109,7 @@ class Modules_Microweber_Install {
 		
         $command = $domainDocumentRoot . '/artisan microweber:install ' . $installArguments;
         
-        var_dump(pm_ApiCli::callSbin('run_php.sh', [$command]));  
+        pm_ApiCli::callSbin('run_php.sh', [$command]);  
       	
         if ($this->_type == 'symlink') {
 	        
@@ -125,12 +126,14 @@ class Modules_Microweber_Install {
 				
 	            $result = pm_ApiCli::callSbin('create_symlink.sh', [$scriptDirOrFile, $domainDirOrFile], pm_ApiCli::RESULT_FULL);
 	            
-	            var_dump($result);    
-	            
 	        }
+	        
+	        $domainFileManager->filePutContents($domain->getDocumentRoot() . '/symlinked.txt', 'true');
         }
         
-        var_dump(pm_ApiCli::callSbin('repar_domain_permissions.sh', [$domainName], pm_ApiCli::RESULT_FULL)); 
+        $domainFileManager->filePutContents($domain->getDocumentRoot() . '/standalone.txt', 'true');
+        
+        pm_ApiCli::callSbin('repar_domain_permissions.sh', [$domainName], pm_ApiCli::RESULT_FULL); 
         
         return array('success'=>true, 'log'=> '');
         
@@ -170,6 +173,7 @@ class Modules_Microweber_Install {
     	$files = array();
     	
     	// Index
+    	$files[] = 'version.txt';
     	$files[] = 'index.php';
     	$files[] = '.htaccess';
     	$files[] = 'favicon.ico';
@@ -210,7 +214,7 @@ class Modules_Microweber_Install {
     
     private function _getRandomPassword($length = 16)
     {
-    	$alphabet = '!@#abcdef^@%^&*[]-ghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+    	$alphabet = 'ghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
     	$pass = array();
     	$alphaLength = strlen($alphabet) - 1;
     	for ($i = 0; $i < $length; $i++) {
