@@ -139,10 +139,13 @@ class IndexController extends pm_Controller_Action {
 
             $post = $this->getRequest()->getPost();
 			
-            $newInstallation = new Modules_CredoCart_Install();
+            $newInstallation = new Modules_Microweber_Install();
             $newInstallation->setDomainId($post['installation_domain']);
             $newInstallation->setType($post['installation_type']);
             $newInstallation->run();
+            
+            $this->_status->addMessage('info', 'App is installed successfuly.');
+            $this->_helper->json(['redirect' => pm_Context::getBaseUrl()]);
         }
 
         $this->view->form = $form;

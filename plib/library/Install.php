@@ -6,7 +6,7 @@
 
 class Modules_Microweber_Install {
 
-    protected $_appLatestVersionFolder = '/usr/share/microweber/latest/';
+    protected $_appLatestVersionFolder = '/usr/share/microweber/latest';
     protected $_overwrite = true;
     protected $_domainId;
     protected $_type = 'default';
@@ -21,18 +21,20 @@ class Modules_Microweber_Install {
 
     public function run() {
         
+    	$this->_domainId = 6;
+    	
         $domain = pm_Domain::getByDomainId($this->_domainId);
 
         if (empty($domain->getName())) {
             throw new \Exception('Domain not found.');
         } 
         
-        $dbPrefix = rand(11,99);
+        $dbPrefix = rand(111,999);
         $dbNameLength = 15;
         $dbName = $dbPrefix . str_replace('.', '', $domain->getName());
         $dbName = substr($dbName, 0, $dbNameLength);
         $dbUsername = $dbName;
-        $dbPassword = $this->_getRandomPassword(12);
+        $dbPassword = 'hs45i4m4';//$this->_getRandomPassword(12);
 
         $manager = new Modules_Microweber_DatabaseManager();
         $manager->setDomainId($domain->getId());
@@ -68,82 +70,69 @@ class Modules_Microweber_Install {
         pm_ApiCli::callSbin('clear_domain_folder.sh', [$domainDocumentRoot]);
        
         // First we will make a directories
-        // And then we will copy files
         foreach ($this->_getDirsToMake() as $dir) {
-        	pm_ApiCli::callSbin('create_dir.sh', [$this->_appLatestVersionFolder . '/' . $dir, $domainDocumentRoot . '/' . $dir]);
+        	pm_ApiCli::callSbin('create_dir.sh', [$domainDocumentRoot . '/' . $dir]);  
         }
         
-        die();
         // And then we will copy files
         foreach ($this->_getFilesForCopy() as $file) {
-        	pm_ApiCli::callSbin('copy_file.sh', [$this->_appLatestVersionFolder . '/' . $file, $domainDocumentRoot . '/' . $file]);
+        	var_dump(pm_ApiCli::callSbin('copy_file.sh', [$this->_appLatestVersionFolder . '/' . $file, $domainDocumentRoot . '/' . $file]));
         }
         
-        
-        echo 1;
-        die();
-        
-        $adminFirstName = '';
-        $adminLastName = '';
-        $adminEmail = '';
-        $adminPassword = '';
-        $storeName = '';
-        $storeEmail = '';
 
+        $adminEmail = '1';
+        $adminPassword = '1';
+        $adminUsername = '1';
+        
+        $dbDriver = 'mysql';
+        $dbHost = '127.0.0.1';
+        $dbPort = '3306';
+        
         $installArguments = array();
-        $installArguments[] = '--db_name=' . $dbName;
-        $installArguments[] = '--db_host=' . $dbHost;
-        $installArguments[] = '--db_port=' . $dbPort;
-        $installArguments[] = '--db_username=' . $dbUsername;
-        $installArguments[] = '--db_password=' . $dbPassword;
-
-        $installArguments[] = '--admin_first_name=' . $adminFirstName;
-        $installArguments[] = '--admin_last_name=' . $adminLastName;
-        $installArguments[] = '--admin_email=' . $adminEmail;
-        $installArguments[] = '--admin_password=' . $adminPassword;
-
-        $installArguments[] = '--store_name=' . $storeName;
-        $installArguments[] = '--store_email=' . $storeEmail;
-
+        
+        $installArguments[] =  $adminEmail;
+        $installArguments[] =  $adminUsername;
+        $installArguments[] =  $adminPassword;
+        
+        $installArguments[] = $dbHost;
+        $installArguments[] = $dbName;
+        $installArguments[] = $dbUsername;
+        $installArguments[] = $dbPassword;
+        $installArguments[] = $dbDriver;
+        $installArguments[] = '-p mw_';
+        $installArguments[] = '-t dream';
+        $installArguments[] = '-d 1';
+       // $installArguments[] = '-c 1';
+        
         $installArguments = implode(' ', $installArguments);
-
-
-        $command = $domainDocumentRoot . '/artisan credocart:install ' . $installArguments;
+		
+        $command = $domainDocumentRoot . '/artisan microweber:install ' . $installArguments;
+        
         var_dump(pm_ApiCli::callSbin('run_php.sh', [$command]));  
-
-        var_dump(pm_ApiCli::callSbin('repar_domain_permissions.sh', [$domainName], pm_ApiCli::RESULT_FULL));
-        
-        // Create symlinks
-        $symlinkFolders = array();
-        $symlinkFolders[] = 'config';
-        $symlinkFolders[] = 'app';
-        $symlinkFolders[] = 'vendor';
-        $symlinkFolders[] = 'routes';
-        $symlinkFolders[] = 'resources';
-        $symlinkFolders[] = '.htaccess';
-        $symlinkFolders[] = 'Modules';
-        $symlinkFolders[] = 'Themes';
-        $symlinkFolders[] = 'assets';
-        
-        $fileManager = new pm_FileManager($domain->getId());
-
-        foreach ($symlinkFolders as $folder) {
-            
-        	$scriptDirOrFile = $this->_appLatestVersionFolder . '/' . $folder;
-            $domainDirOrFile = $domainDocumentRoot .'/'. $folder;
-			
-            if ($fileManager->isDir($domainDirOrFile)) {
-                $fileManager->removeDirectory($domainDirOrFile);
-            } else {
-                $fileManager->removeFile($domainDirOrFile);
-            }
-            
-            $result = pm_ApiCli::callSbin('create_symlink.sh', [$scriptDirOrFile, $domainDirOrFile], pm_ApiCli::RESULT_FULL);
-            
-            var_dump($result);
-            
+      	
+        if ($this->_type == 'symlink') {
+	        
+	        // Create symlinks
+	        $symlinkFolders = array();
+	        $symlinkFolders[] = 'src';
+	        $symlinkFolders[] = 'vendor';
+	        $symlinkFolders[] = 'resources';
+	        
+	        foreach ($symlinkFolders as $folder) {
+	            
+	        	$scriptDirOrFile = $this->_appLatestVersionFolder . '/' . $folder;
+	            $domainDirOrFile = $domainDocumentRoot .'/'. $folder;
+				
+	            $result = pm_ApiCli::callSbin('create_symlink.sh', [$scriptDirOrFile, $domainDirOrFile], pm_ApiCli::RESULT_FULL);
+	            
+	            var_dump($result);    
+	            
+	        }
         }
         
+        var_dump(pm_ApiCli::callSbin('repar_domain_permissions.sh', [$domainName], pm_ApiCli::RESULT_FULL)); 
+        
+        return array('success'=>true, 'log'=> '');
         
     }
     
@@ -165,10 +154,13 @@ class Modules_Microweber_Install {
     	$dirs[] = 'bootstrap/cache';
     	
     	// User files dirs
-    	$dirs[] = 'userfiles';
-    	$dirs[] = 'userfiles/media';
-    	$dirs[] = 'userfiles/modules';
-    	$dirs[] = 'userfiles/templates';
+    	//$dirs[] = 'userfiles';
+    	//$dirs[] = 'userfiles/media';
+    	//$dirs[] = 'userfiles/modules';
+    	//$dirs[] = 'userfiles/templates';
+    	
+    	// Config dir
+    	$dirs[] = 'config';
     	
     	return $dirs;
     }
@@ -198,11 +190,20 @@ class Modules_Microweber_Install {
     	$files[] = 'config/workbench.php';
     	$files[] = 'config/hashing.php';
     	$files[] = 'config/mail.php';
+    	$files[] = 'config/session.php';
     	
     	// Bootstrap folder
     	$files[] = 'bootstrap/.htaccess';
     	$files[] = 'bootstrap/app.php';
     	$files[] = 'bootstrap/autoload.php';
+    	
+    	// App folders
+    	$files[] = 'database';
+    	$files[] = 'resources';
+    	$files[] = 'src';
+    	$files[] = 'tests';
+    	$files[] = 'vendor';
+    	$files[] = 'userfiles';
     	
     	return $files;
     }

@@ -30,6 +30,6 @@ rm -rf '/usr/share/'"$2"'/latest'
 echo 'Move file to /usr/share/'"$2"
 mv latest /usr/share/"$2"
 
-cd /usr/share/"$2"/latest || exit
+chmod 755 -R /usr/share/"$2"/latest
 
 echo "Done!"
